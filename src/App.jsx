@@ -142,22 +142,18 @@ export default function App(){
 
 const submit = async () => {
     if(!authorized){ alert('Enter access code first'); return }
+    if(!db){ alert('Firestore not configured (set VITE_FIREBASE_* env vars)'); return }
     
-    if(!window.storage) {
-      alert('Storage not available. Data will be lost on refresh.')
-      return
-    }
-    
-    const d = new Date(date)
+    const dateNow = new Date(date)
     const timestamp = Date.now()
     const entryId = `entry-${timestamp}-${activePerson.replace(/\s+/g, '')}`
     const payload = {
       id: entryId,
       name: activePerson,
-      date: d.toISOString(),
-      week: isoWeek(d),
-      month: d.getMonth()+1,
-      year: d.getFullYear(),
+      date: dateNow.toISOString(),
+      week: isoWeek(dateNow),
+      month: dateNow.getMonth()+1,
+      year: dateNow.getFullYear(),
       intakes: Number(form.intakes)||0,
       interviews: Number(form.interviews)||0,
       placements: Number(form.placements)||0,
@@ -166,7 +162,8 @@ const submit = async () => {
     }
     
     try {
-      const result = await window.storage.set(entryId, JSON.stringify(payload), true)
+      
+      const result = await addDoc(collection(db,'entries'), payload)
       
       if(result) {
         setEntries(prev => [payload, ...prev])
