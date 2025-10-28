@@ -142,7 +142,7 @@ export default function App(){
 
 const submit = async () => {
     if(!authorized){ alert('Enter access code first'); return }
-    if(!db){ alert('Firestore not configured (set VITE_FIREBASE_* env vars)'); return }
+    //if(!db){ alert('Firestore not configured (set VITE_FIREBASE_* env vars)'); return }
     
     const dateNow = new Date(date)
     const timestamp = Date.now()
