@@ -75,12 +75,12 @@ export default function App(){
   const loadEntries = async () => {
     setLoading(true)
     try {
-      const result = await window.Storage.list('entry:', true)
+      const result = await window.storage.list('entry:', true)
       if(result && result.keys) {
         const loadedEntries = []
         for(const key of result.keys) {
           try {
-            const data = await window.Storage.get(key, true)
+            const data = await window.storage.get(key, true)
             if(data && data.value) {
               loadedEntries.push(JSON.parse(data.value))
             }
@@ -140,11 +140,17 @@ export default function App(){
 
   const ranking = useMemo(() => [...consultantData].sort((a,b)=>(b.placements-a.placements)|| (b.intakes-a.intakes) || (b.interviews-a.interviews)), [consultantData])
 
-  const submit = async () => {
+const submit = async () => {
     if(!authorized){ alert('Enter access code first'); return }
     
+    if(!window.storage) {
+      alert('Storage not available. Data will be lost on refresh.')
+      return
+    }
+    
     const d = new Date(date)
-    const entryId = `entry:${Date.now()}_${activePerson}`
+    const timestamp = Date.now()
+    const entryId = `entry-${timestamp}-${activePerson.replace(/\s+/g, '')}`
     const payload = {
       id: entryId,
       name: activePerson,
@@ -160,17 +166,22 @@ export default function App(){
     }
     
     try {
-      await window.Storage.set(entryId, JSON.stringify(payload), true)
+      const result = await window.storage.set(entryId, JSON.stringify(payload), true)
       
-      setEntries(prev => [payload, ...prev])
-      
-      if(payload.placements > 0) {
-        triggerConfetti()
+      if(result) {
+        setEntries(prev => [payload, ...prev])
+        
+        if(payload.placements > 0) {
+          triggerConfetti()
+        }
+        
+        setForm({ intakes:0, interviews:0, placements:0, prospects:0 })
+      } else {
+        throw new Error('Storage operation returned null')
       }
-      
-      setForm({ intakes:0, interviews:0, placements:0, prospects:0 })
     } catch (error) {
-      alert('Failed to submit entry: ' + (error.message || error))
+      console.error('Storage error:', error)
+      alert('Failed to submit entry: ' + (error.message || 'Unknown error'))
     }
   }
 
