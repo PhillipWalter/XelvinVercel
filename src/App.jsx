@@ -11,6 +11,9 @@ import confetti from 'canvas-confetti'
 const PINCODE = '8448'
 const CONSULTANTS = ['Marcus','Lisanna','Nick','Gea','Dion','Sander','Yde']
 
+// may have to introduce a database call to update all of the cosultant scores the moment the project initializes
+// if the consultant is not present (new consultant) the lookup process should not execute.
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -19,8 +22,14 @@ const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
+const [firebaseError, setFirebaseError] = useState(null)
 let db = null
-try { db = getFirestore(initializeApp(firebaseConfig)) } catch(e){ console.warn('Firebase init failed', e) }
+try {
+  db = getFirestore(initializeApp(firebaseConfig))
+} catch(e){
+  console.warn('Firebase init failed', e)
+  setFirebaseError(e.message || 'Firebase initialization failed')
+}
 
 function isoWeek(d){
   const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
@@ -103,16 +112,25 @@ export default function App(){
       prospects: Number(form.prospects)||0,
       createdAt: serverTimestamp(),
     }
-    await addDoc(collection(db,'entries'), payload)
-    if(payload.placements>0){
-      confetti({ particleCount: 120, spread: 70, origin: { y: 0.8 } })
+    try {
+      await addDoc(collection(db,'entries'), payload)
+      if(payload.placements>0){
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.8 } })
+      }
+      setForm({ intakes:0, interviews:0, placements:0, prospects:0 })
+    } catch (error) {
+      alert('Failed to submit entry: ' + (error.message || error))
     }
-    setForm({ intakes:0, interviews:0, placements:0, prospects:0 })
   }
 
   return (
     <div className="min-h-screen bg-white text-slate-800 p-6">
       <div className="max-w-7xl mx-auto">
+        {firebaseError && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded border border-red-300">
+            <strong>Firebase Error:</strong> {firebaseError}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-extrabold" style={{color:'var(--xelvin-blue)'}}>Xelvin Performance Dashboard</h1>
