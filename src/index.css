@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --xelvin-blue: #004C97; --xelvin-orange: #FF6600; --panel: #F5F8FC; }
+body { font-family: 'Open Sans', system-ui, sans-serif; }
