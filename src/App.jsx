@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { initializeApp } from 'firebase/app'
+import { getFirestore, collection, addDoc } from 'firebase/firestore'
 
 const PINCODE = '8448'
 const CONSULTANTS = ['Marcus','Lisanna','Nick','Gea','Dion','Sander','Yde']
