@@ -159,7 +159,7 @@ export default function App(){
     }
     
     try {
-      await window.storage.set(entryId, JSON.stringify(payload), true)
+      await window.Storage.set(entryId, JSON.stringify(payload), true)
       
       setEntries(prev => [payload, ...prev])
       
