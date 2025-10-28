@@ -4,6 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 const PINCODE = '8448'
 const CONSULTANTS = ['Marcus','Lisanna','Nick','Gea','Dion','Sander','Yde']
 
+
+let db = null
+try { db = getFirestore(initializeApp(firebaseConfig)) } catch(e){ console.warn('Firebase init failed', e) }
+
 function isoWeek(d){
   const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
   const day = tmp.getUTCDay() || 7
