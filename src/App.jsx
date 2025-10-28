@@ -15,7 +15,7 @@ function todayStr(){ return new Date().toISOString().slice(0,10) }
 
 function triggerConfetti() {
   const colors = ['#FF6B35', '#0066CC', '#FFD700', '#00C851']
-  const duration = 2000
+  const duration = 1000
   const animationEnd = Date.now() + duration
   
   const randomInRange = (min, max) => Math.random() * (max - min) + min
@@ -75,16 +75,17 @@ export default function App(){
   const loadEntries = async () => {
     setLoading(true)
     try {
-      const result = await window.storage.list('entry:', true)
+      const result = await window.Storage.list('entry:', true)
       if(result && result.keys) {
         const loadedEntries = []
         for(const key of result.keys) {
           try {
-            const data = await window.storage.get(key, true)
+            const data = await window.Storage.get(key, true)
             if(data && data.value) {
               loadedEntries.push(JSON.parse(data.value))
             }
-          } catch(e) {
+          } 
+          catch(e) {
             console.warn('Failed to load entry:', key, e)
           }
         }
@@ -118,7 +119,7 @@ export default function App(){
     return result
   }, [entries, filterRange, period, viewMode, activePerson])
 
-  const aggregated = useMemo(() => {
+  const consultantData = useMemo(() => {
     const base = Object.fromEntries(CONSULTANTS.map(n=>[n,{ name:n, intakes:0, interviews:0, placements:0, prospects:0 }]))
     for(const e of filtered){
       if(!base[e.name]) continue
@@ -130,14 +131,14 @@ export default function App(){
     return Object.values(base)
   }, [filtered])
 
-  const total = useMemo(() => aggregated.reduce((acc,cur)=> ({
+  const total = useMemo(() => consultantData.reduce((acc,cur)=> ({
     intakes: acc.intakes + cur.intakes,
     interviews: acc.interviews + cur.interviews,
     placements: acc.placements + cur.placements,
     prospects: acc.prospects + cur.prospects,
-  }), {intakes:0,interviews:0,placements:0,prospects:0}), [aggregated])
+  }), {intakes:0,interviews:0,placements:0,prospects:0}), [consultantData])
 
-  const ranking = useMemo(() => [...aggregated].sort((a,b)=>(b.placements-a.placements)|| (b.intakes-a.intakes) || (b.interviews-a.interviews)), [aggregated])
+  const ranking = useMemo(() => [...consultantData].sort((a,b)=>(b.placements-a.placements)|| (b.intakes-a.intakes) || (b.interviews-a.interviews)), [consultantData])
 
   const submit = async () => {
     if(!authorized){ alert('Enter access code first'); return }
@@ -263,7 +264,7 @@ export default function App(){
                     type="password" 
                     value={pin} 
                     onChange={(e)=>setPin(e.target.value)} 
-                    onKeyPress={handleKeyPress}
+                    onKeyUp={handleKeyPress}
                   />
                   <button className="bg-[var(--xelvin-blue)] text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors" onClick={()=> setAuthorized(pin===PINCODE)}>
                     Unlock
@@ -308,7 +309,7 @@ export default function App(){
               <div className="h-48">
                 <h3 className="text-sm font-semibold mb-2 text-slate-700">Placements by Consultant</h3>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={aggregated.map(a=>({name:a.name, value:a.placements}))}>
+                  <BarChart data={consultantData.map(a=>({name:a.name, value:a.placements}))}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{fontSize: 11}} />
                     <YAxis tick={{fontSize: 11}} />
@@ -320,7 +321,7 @@ export default function App(){
               <div className="h-48">
                 <h3 className="text-sm font-semibold mb-2 text-slate-700">Candidate Intakes by Consultant</h3>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={aggregated.map(a=>({name:a.name, value:a.intakes}))}>
+                  <BarChart data={consultantData.map(a=>({name:a.name, value:a.intakes}))}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" tick={{fontSize: 11}} />
                     <YAxis tick={{fontSize: 11}} />
